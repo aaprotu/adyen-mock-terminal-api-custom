@@ -34,6 +34,10 @@ class PaymentService {
 
         if (isPinEntered) {
             const amount = request.body.SaleToPOIRequest.PaymentRequest.PaymentTransaction.AmountsReq.RequestedAmount;
+            const transactionId = request.body.SaleToPOIRequest.PaymentRequest.SaleData.SaleTransactionID.TransactionID;
+            const currency = request.body.SaleToPOIRequest.PaymentRequest.PaymentTransaction.AmountsReq.Currency;
+            const saleId = request.body.SaleToPOIRequest.MessageHeader.SaleID;
+            const poiId = request.body.SaleToPOIRequest.MessageHeader.POIID;
             const lastThreeDigits = amount.toString()
                 .replace('.', '')
                 .padStart(3, '0')
@@ -46,7 +50,50 @@ class PaymentService {
                 return paymentFailure;
             }
 
-            return "payment";
+            return {
+                SaleToPOIResponse: {
+                    MessageHeader: {
+                        ProtocolVersion: "3.0",
+                        MessageClass: "Service",
+                        MessageCategory: "Payment",
+                        MessageType: "Response",
+                        ServiceID: "1234567890AB",
+                        SaleID: saleId,
+                        POIID: poiId
+                    },
+                    PaymentResponse: {
+                        POIData: {
+                            POITransactionID: {
+                                TransactionID: transactionId,
+                                TimeStamp: new Date().toISOString()
+                            }
+                        },
+                        PaymentResult: {
+                            AmountsResp: {
+                                AuthorizedAmount: amount,
+                                Currency: currency
+                            },
+                            PaymentInstrumentData: {
+                                PaymentInstrumentType: "Card"
+                            },
+                            PaymentAcquirerData: {
+                                MerchantID: "ADYEN_MERCHANT_ACCOUNT",
+                                AcquirerPOIID: "V400m-123456789"
+                            }
+                        },
+                        SaleData: {
+                            SaleTransactionID: {
+                                TransactionID: transactionId,
+                                TimeStamp: new Date().toISOString()
+                            }
+                        },
+                        Response: {
+                            AdditionalResponse: "...",
+                            Result: "Success"
+                        }
+                    }
+                }
+            };
         }
 
         return {};

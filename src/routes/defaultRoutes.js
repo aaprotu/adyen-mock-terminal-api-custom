@@ -38,10 +38,11 @@ router.post("/sync", async (req, res) => {
             return;
         }
 
-        // Handle payment request.
+        // Handle payment request with dynamic values.
         if (paymentService.containsPrefix(req)) {
             const paymentResponse = await paymentService.getResponse(req);
-            sendOKResponse(res, paymentResponse);
+            userInteractionService.setLastResponse(paymentResponse);
+            res.status(200).send(paymentResponse);
             return;
         }
 
